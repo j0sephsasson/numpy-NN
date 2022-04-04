@@ -2,6 +2,8 @@
 Neural Network implementation from scratch using numpy
 
 ## Usage
+
+#### numpy-nn
 ```
 model = Network()
 model.add(DenseLayer(6))
@@ -31,6 +33,26 @@ model.train(X_train=X, y_train=y, epochs=200)
 > EPOCH: 180, ACCURACY: 0.9533333333333334, LOSS: 0.4887972804949555
 >
 
+#### keras equivalent
+```
+from keras.models import Sequential
+from keras.layers import Dense
+import tensorflow as tf
+from tensorflow.keras.optimizers import SGD
+
+ohy = tf.keras.utils.to_categorical(y, num_classes=3)
+
+model2 = Sequential()
+model2.add(Dense(6, activation='relu'))
+model2.add(Dense(10, activation='relu'))
+model2.add(Dense(8, activation='relu'))
+model2.add(Dense(3, activation='softmax'))
+
+model2.compile(SGD(learning_rate=0.01), loss='categorical_crossentropy', metrics=['accuracy'])
+
+model2.fit(x=X, y=ohy, epochs=30)
+```
+
 ## Metrics
 ![Accuracy](https://github.com/j0sephsasson/numpy-nn/blob/main/accuracy.png?raw=true)
 ![Loss](https://github.com/j0sephsasson/numpy-nn/blob/main/loss.png?raw=true)
@@ -43,6 +65,7 @@ model.train(X_train=X, y_train=y, epochs=200)
     - multi-class tasks *ONLY*
 
 ## Next Steps
-1. Binary classification tasks
-2. Regression tasks
-3. Multiple loss functions / optimizations
+1. Documentation
+2. Binary classification tasks
+3. Regression tasks
+4. Multiple loss functions / optimizations
