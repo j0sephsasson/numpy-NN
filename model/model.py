@@ -1,4 +1,5 @@
-import numpy as np
+import numpy as np, pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
 class DenseLayer:
     def __init__(self, neurons):
@@ -125,8 +126,7 @@ class Network:
     def _calculate_loss(self, predicted, actual):
         samples = len(actual)
         
-        probs = predicted / np.sum(predicted, axis=1, keepdims=True)
-        correct_logprobs = -np.log(probs[range(samples),actual])
+        correct_logprobs = -np.log(predicted[range(samples),actual])
         data_loss = np.sum(correct_logprobs)/150
 
         return data_loss
@@ -149,3 +149,31 @@ class Network:
             if i % 20 == 0:
                 s = 'EPOCH: {}, ACCURACY: {}, LOSS: {}'.format(i, self.accuracy[-1], self.loss[-1])
                 print(s)
+
+if __name__ == '__main__':
+    def get_data(path):
+        data = pd.read_csv(path, index_col=0)
+
+        cols = list(data.columns)
+        target = cols.pop()
+
+        X = data[cols].copy()
+        y = data[target].copy()
+
+        y = LabelEncoder().fit_transform(y)
+
+        return np.array(X), np.array(y)
+
+    X, y = get_data(r'C:\Users\12482\Desktop\articles\nn_from_scratch\iris.csv')
+
+    model = Network()
+    model.add(DenseLayer(6))
+    model.add(DenseLayer(8))
+    model.add(DenseLayer(3))
+
+    model.train(X_train=X, y_train=y, epochs=200)
+
+    print()
+
+    print('MODEL ACCURACY:', model.accuracy[-1])
+    print('MODEL LOSS:', model.loss[-1])
