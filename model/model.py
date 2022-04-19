@@ -127,7 +127,7 @@ class Network:
         samples = len(actual)
         
         correct_logprobs = -np.log(predicted[range(samples),actual])
-        data_loss = np.sum(correct_logprobs)/150
+        data_loss = np.sum(correct_logprobs)/samples
 
         return data_loss
     
