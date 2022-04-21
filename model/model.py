@@ -30,14 +30,14 @@ class DenseLayer:
     
     def backward(self, dA_curr, W_curr, Z_curr, A_prev, activation):
         if activation == 'softmax':
-            dW = np.dot(A_prev.T, dA_curr) ## backpropate the gradient to the parameters (W,b)
+            dW = np.dot(A_prev.T, dA_curr)
             db = np.sum(dA_curr, axis=0, keepdims=True)
-            dA = np.dot(W_curr.T, dA_curr.T) ## --> next input for dW (this is dA)
+            dA = np.dot(dA_curr, W_curr) 
         else:
-            dZ = self.relu_derivative(dA_curr.T, Z_curr)
+            dZ = self.relu_derivative(dA_curr, Z_curr)
             dW = np.dot(A_prev.T, dZ)
             db = np.sum(dZ, axis=0, keepdims=True)
-            dA = np.dot(W_curr.T, dZ.T) ## --> next input for dW (this is dA)
+            dA = np.dot(dZ, W_curr)
             
         return dA, dW, db
 
@@ -55,21 +55,20 @@ class Network:
     def _compile(self, data):
         for idx, layer in enumerate(self.network):
             if idx == 0:
-                self.architecture.append({'input_dim':data.shape[1], 
-                                          'output_dim':layer.neurons, 'activation':'relu'})
-            if idx == len(self.network)-2:
-                self.architecture.append({'input_dim':layer.neurons, 
-                                          'output_dim':self.network[idx+1].neurons, 'activation':'softmax'})
-            elif idx != len(self.network)-2 and idx != len(self.network)-1:
-                self.architecture.append({'input_dim':layer.neurons, 
-                                          'output_dim':self.network[idx+1].neurons, 'activation':'relu'})
+                self.architecture.append({'input_dim':data.shape[1], 'output_dim':self.network[idx].neurons,
+                                         'activation':'relu'})
+            elif idx > 0 and idx < len(self.network)-1:
+                self.architecture.append({'input_dim':self.network[idx-1].neurons, 'output_dim':self.network[idx].neurons,
+                                         'activation':'relu'})
             else:
-                continue
-                
+                self.architecture.append({'input_dim':self.network[idx-1].neurons, 'output_dim':self.network[idx].neurons,
+                                         'activation':'softmax'})
         return self
     
     def _init_weights(self, data):
         self._compile(data)
+        
+        np.random.seed(99)
         
         for i in range(len(self.architecture)):
             self.params.append({
@@ -117,7 +116,7 @@ class Network:
             
     def _update(self, lr=0.01):
         for idx, layer in enumerate(self.network):
-            self.params[idx]['W'] -= lr * list(reversed(self.gradients))[idx]['dW'].T     
+            self.params[idx]['W'] -= lr * list(reversed(self.gradients))[idx]['dW'].T  
             self.params[idx]['b'] -= lr * list(reversed(self.gradients))[idx]['db']
     
     def _get_accuracy(self, predicted, actual):
@@ -169,11 +168,7 @@ if __name__ == '__main__':
     model = Network()
     model.add(DenseLayer(6))
     model.add(DenseLayer(8))
+    model.add(DenseLayer(10))
     model.add(DenseLayer(3))
 
     model.train(X_train=X, y_train=y, epochs=200)
-
-    print()
-
-    print('MODEL ACCURACY:', model.accuracy[-1])
-    print('MODEL LOSS:', model.loss[-1])
